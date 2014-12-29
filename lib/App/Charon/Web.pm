@@ -12,9 +12,15 @@ has _quit => (
    init_arg => 'quit',
 );
 
+has _root => (
+   is => 'ro',
+   default => '.',
+   init_arg => 'root',
+);
+
 sub dispatch_request {
    '/quit' => sub { shift->_quit->done(1); [200, [], ''] },
-   '/...' => sub { Plack::App::Directory->new( root => '.' ) },
+   '/...' => sub { Plack::App::Directory->new( root => shift->_root ) },
 }
 
 1;

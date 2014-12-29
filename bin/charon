@@ -6,6 +6,7 @@ use warnings;
 use Getopt::Long::Descriptive;
 use IO::Async::Loop;
 use Net::Async::HTTP::Server::PSGI;
+use IO::All;
 
 use App::Charon::Web;
 
@@ -22,8 +23,14 @@ my $loop = IO::Async::Loop->new;
 
 my $quit = $loop->new_future;
 
+my $app = App::Charon::Web->new(
+   quit => $quit,
+   (
+      $ARGV[0] ? (root => $ARGV[0]) : ()
+   ),
+);
 my $handler = Net::Async::HTTP::Server::PSGI->new(
-   app => App::Charon::Web->new( quit => $quit )->to_psgi_app,
+   app => $app->to_psgi_app,
 );
 $loop->add($handler);
 
@@ -43,7 +50,7 @@ $handler->listen(
    on_listen_error => sub { die $_[1] },
    on_resolve_error => sub { die $_[1] },
    on_listen => sub {
-      warn "listening on: " .
+      warn 'serving ' . io->file($app->_root)->rel2abs . ' on ' .
          $_[0]->read_handle->sockhost . ':' .
          $_[0]->read_handle->sockport . "\n"
    },
