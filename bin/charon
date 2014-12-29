@@ -3,10 +3,20 @@
 use strict;
 use warnings;
 
+use Getopt::Long::Descriptive;
 use IO::Async::Loop;
 use Net::Async::HTTP::Server::PSGI;
 
 use App::Charon::Web;
+
+my ($opt, $usage) = describe_options(
+  'charon %o [file|dir]',
+  [ 'listen|l=s',   "Listens on an address, whether HOST:PORT or :PORT"],
+  [],
+  [ 'help',       "print usage message and exit" ],
+);
+
+print($usage->text), exit if $opt->help;
 
 my $loop = IO::Async::Loop->new;
 
@@ -17,14 +27,26 @@ my $handler = Net::Async::HTTP::Server::PSGI->new(
 );
 $loop->add($handler);
 
-$handler->listen(
-   host => '0.0.0.0',
-   service => '5002',
-   socktype => 'stream',
-   on_listen_error => sub { die $_[0] },
-   on_resolve_error => sub { die $_[0] },
-);
+my $host = '0.0.0.0';
+my $port;
 
-warn "listening on 0.0.0.0:5002\n";
+if ($opt->listen and ($host, $port) = $opt->listen =~ m/^(.*):(\d+)$/) {
+   $host = '0.0.0.0' if $host eq '*' || $host eq '';
+}
+
+$port ||= 5000;
+
+$handler->listen(
+   host => $host,
+   service => $port,
+   socktype => 'stream',
+   on_listen_error => sub { die $_[1] },
+   on_resolve_error => sub { die $_[1] },
+   on_listen => sub {
+      warn "listening on: " .
+         $_[0]->read_handle->sockhost . ':' .
+         $_[0]->read_handle->sockport . "\n"
+   },
+);
 
 $quit->get;
