@@ -6,3 +6,4 @@ requires 'Getopt::Long::Descriptive';
 requires 'IO::All';
 requires 'Time::Duration::Parse';
 requires 'App::Genpass';
+requires 'IO::Socket::IP';

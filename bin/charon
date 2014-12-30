@@ -8,6 +8,7 @@ use IO::Async::Loop;
 use Net::Async::HTTP::Server::PSGI;
 use IO::All;
 use Future;
+use IO::Socket::IP;
 
 use App::Charon::Web;
 
@@ -49,12 +50,28 @@ if ($opt->listen and ($host, $port) = $opt->listen =~ m/^(.*):(\d+)$/) {
    $host = '0.0.0.0' if $host eq '*' || $host eq '';
 }
 
-$port ||= 5000;
+my $sock;
+
+if ($port) {
+   $sock = IO::Socket::IP->new(
+      LocalHost => $host,
+      LocalService => $port,
+      Listen => 1,
+   )
+} else {
+   for my $port (3000..9999) {
+      last if $sock = IO::Socket::IP->new(
+         LocalHost => $host,
+         LocalService => $port,
+         Listen => 1,
+      )
+   }
+   die "could not listen on any port!\n" unless $sock;
+}
 
 $handler->listen(
-   host => $host,
-   service => $port,
-   socktype => 'stream',
+   handle => $sock,
+   # are these dead now?
    on_listen_error => sub { die $_[1] },
    on_resolve_error => sub { die $_[1] },
    on_listen => sub {
