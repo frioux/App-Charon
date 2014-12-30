@@ -15,6 +15,7 @@ my ($opt, $usage) = describe_options(
   'charon %o [file|dir]',
   [ 'listen|l=s',   "Listens on an address, whether HOST:PORT or :PORT"],
   [ 'autoshutdown=s', 'Shutdown after a given time period (example: 1h30m)'],
+  [ 'query-param-auth=s', 'Use query param auth.  Eg: pass=station will require ?pass=station in requests'],
   [],
   [ 'help',       "print usage message and exit" ],
 );
@@ -30,6 +31,11 @@ my $app = App::Charon::Web->new(
    (
       $ARGV[0] ? (root => $ARGV[0]) : ()
    ),
+   (
+      defined $opt->query_param_auth
+         ? (query_param_auth => $opt->query_param_auth)
+         : ()
+   )
 );
 my $handler = Net::Async::HTTP::Server::PSGI->new(
    app => $app->to_psgi_app,
@@ -54,7 +60,15 @@ $handler->listen(
    on_listen => sub {
       warn 'serving ' . io->file($app->_root)->rel2abs . ' on ' .
          $_[0]->read_handle->sockhost . ':' .
-         $_[0]->read_handle->sockport . "\n"
+         $_[0]->read_handle->sockport .
+         (
+            @{$app->_query_param_auth}
+               ? ' with a query param auth of ?'.
+                  $app->_query_param_auth->[0] . '=' .
+                  $app->_query_param_auth->[1]
+               : ''
+         ) .
+         "\n"
    },
 );
 
