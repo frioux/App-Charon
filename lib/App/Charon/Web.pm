@@ -5,6 +5,7 @@ use Web::Simple;
 use warnings NONFATAL => 'all';
 
 use Plack::App::Directory;
+use Plack::App::File;
 
 has _quit => (
    is => 'ro',
@@ -27,6 +28,12 @@ has _query_param_auth => (
    init_arg => 'query_param_auth',
 );
 
+has _show_index => (
+   is => 'ro',
+   default => 1,
+   init_arg => 'show_index',
+);
+
 sub BUILDARGS {
    my ($self, %params) = @_;
 
@@ -39,6 +46,9 @@ sub BUILDARGS {
 sub dispatch_request {
    my $self = shift;
 
+   my $server = $self->_show_index
+      ? 'Plack::App::Directory'
+      : 'Plack::App::File';
    my @qpa = @{$self->_query_param_auth};
    (@qpa ? ( "?$qpa[0]~" => sub {
       my ($self, $value) = @_;
@@ -48,7 +58,7 @@ sub dispatch_request {
       return;
    }) : ()),
    '/quit' => sub { shift->_quit->done(1); [200, [], ''] },
-   '/...' => sub { Plack::App::Directory->new( root => shift->_root ) },
+   '/_/...' => sub { $server->new( root => shift->_root ) },
 }
 
 1;
