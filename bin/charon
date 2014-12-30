@@ -71,25 +71,19 @@ if ($port) {
    die "could not listen on any port!\n" unless $sock;
 }
 
-$handler->listen(
-   handle => $sock,
-   # are these dead now?
-   on_listen_error => sub { die $_[1] },
-   on_resolve_error => sub { die $_[1] },
-   on_listen => sub {
-      warn 'serving ' . io->file($app->_root)->rel2abs . ' on ' .
-         $_[0]->read_handle->sockhost . ':' .
-         $_[0]->read_handle->sockport .
-         (
-            @{$app->_query_param_auth}
-               ? ' with a query param auth of ?'.
-                  $app->_query_param_auth->[0] . '=' .
-                  $app->_query_param_auth->[1]
-               : ''
-         ) .
-         "\n"
-   },
-);
+$handler->set_handle($sock);
+
+warn 'serving ' . io->file($app->_root)->rel2abs . ' on ' .
+   $sock->sockhost . ':' .
+   $sock->sockport .
+   (
+      @{$app->_query_param_auth}
+         ? ' with a query param auth of ?'.
+            $app->_query_param_auth->[0] . '=' .
+            $app->_query_param_auth->[1]
+         : ''
+   ) .
+   "\n";
 
 if (my $t = $opt->autoshutdown) {
    require Time::Duration::Parse;
