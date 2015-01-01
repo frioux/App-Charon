@@ -59,7 +59,7 @@ if ($port) {
       LocalHost => $host,
       LocalService => $port,
       Listen => 1,
-   )
+   ) or die "could not listen on $host:$port: $!\n";
 } else {
    for my $port (3000..9999) {
       last if $sock = IO::Socket::IP->new(
