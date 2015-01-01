@@ -9,6 +9,8 @@ use Net::Async::HTTP::Server::PSGI;
 use IO::All;
 use Future;
 use IO::Socket::IP;
+use IO::Async::SSL;
+use Capture::Tiny 'capture';
 
 use App::Charon::Web;
 
@@ -18,6 +20,9 @@ my ($opt, $usage) = describe_options(
   [ 'autoshutdown=s', 'Shutdown after a given time period (example: 1h30m)'],
   [ 'query-param-auth=s', 'Use query param auth.  Eg: pass=station will require ?pass=station in requests'],
   [ 'index!', 'Show index (default on)', { default => 1 }],
+  [],
+  [ 'ssl-cert-file=s', 'a'],
+  [ 'ssl-key-file=s', 'b'],
   [],
   [ 'help',       "print usage message and exit" ],
 );
@@ -71,7 +76,17 @@ if ($port) {
    die "could not listen on any port!\n" unless $sock;
 }
 
-$handler->set_handle($sock);
+unlink $_ for qw(key foo.pem);
+system('openssl genrsa -out key 4096');
+system('openssl req -x509 -new -nodes -key key -days 365 -subj "/CN=localhost" -out foo.pem');
+$handler->set_handle(
+   $loop->SSL_upgrade(
+      handle => $sock,
+      SSL_server => 1,
+      SSL_key_file => 'key',
+      SSL_cert_file => 'foo.pem',
+   )->get # or die "failed to upgrade: $SSL_ERROR";
+);
 
 warn 'serving ' . io->file($app->_root)->rel2abs . ' on ' .
    $sock->sockhost . ':' .
@@ -96,3 +111,8 @@ if (my $t = $opt->autoshutdown) {
 }
 
 $quit->get;
+
+__END__
+
+   --http-auth [:genpass:] [password]
+   --https [:genkeys:]
