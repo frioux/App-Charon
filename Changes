@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+ - Fix release by adding stub App::Charon
 
 0.001000  2015-01-01 17:34:48-06:00 America/Chicago
  - Initial Release (Happy New Year! 🎆 🎇 🎆 )
