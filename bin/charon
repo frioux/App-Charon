@@ -3,6 +3,10 @@
 use strict;
 use warnings;
 
+# ABSTRACT: Share files over HTTP easily and conveniently
+
+# PODNAME: charon
+
 use Getopt::Long::Descriptive;
 use IO::Async::Loop;
 use Net::Async::HTTP::Server::PSGI;

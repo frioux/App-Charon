@@ -1,5 +1,7 @@
 package App::Charon::Web;
 
+# ABSTRACT: Internal (for now) Plack app behind charon
+
 use utf8;
 use Web::Simple;
 use warnings NONFATAL => 'all';
