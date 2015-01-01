@@ -19,7 +19,7 @@ my ($opt, $usage) = describe_options(
   [ 'query-param-auth=s', 'Use query param auth.  Eg: pass=station will require ?pass=station in requests'],
   [ 'index!', 'Show index (default on)', { default => 1 }],
   [],
-  [ 'help',       "print usage message and exit" ],
+  [ 'help|h',       "print usage message and exit" ],
 );
 
 print($usage->text), exit if $opt->help;
@@ -96,3 +96,90 @@ if (my $t = $opt->autoshutdown) {
 }
 
 $quit->get;
+
+__END__
+
+=head1 SYNOPSIS
+
+Start up C<charon>:
+
+ $ charon
+ serving /home/frew on 0.0.0.0:3000 with a query param auth of ?auth=br5Y2jX55
+
+Now you can navigate to C<http://127.0.0.1:3000/?auth=br5Y2jX55> and download
+files under C</home/frew>.
+
+Here's an example of using it with all the switches:
+
+ charon ~ --listen *:8080 --autoshutdown 1h --query-param-auth '' --no-index
+
+=head1 DESCRIPTION
+
+ Charon is the ferryman of Hades who carries souls of the newly deceased across
+ the rivers Styx and Acheron that divided the world of the living from the world
+ of the dead
+
+C<charon> is a tool for easily sharing files.  I have found that at work I often
+have trouble ensuring all the various permissions are correct and all the
+various machines have the right tools and whatnot to serve files from one
+machine to another.  C<charon> helps with this by making some of what used to be
+Plack oneliners into a much more robust and convenient tool.
+
+=head1 COMMANDLINE OPTIONS
+
+=head2 single positional argument
+
+ charon ~/code/DBIx-Class-Candy
+
+The one and only positional argument to C<charon> is the directory or file to
+serve.  The default is the current directory, but you can pass another directory
+or even file if you want to serve something else.
+
+=head2 --listen -l
+
+ charon --listen *:5000
+
+ charon -l 10.6.1.6:9090
+
+If you want to choose the port and IP to listen on use this option.  Currently
+only one C<--listen> is supported, but I would be glad to add support for
+multiple in the future.
+
+=head2 --autoshutdown
+
+ charon --autoshutdown 30m
+
+ charon --autoshutdown 1h3m20s
+
+C<--autoshutdown> requires a single argument that expresses a duration.  The
+point is so that you can timebox your file sharing and then after the duration
+it will just go away, instead of you forgetting to shut it down and leaving it
+running forever.
+
+=head2 --query-param-auth
+
+ charon --query-param-auth 'password=station'
+
+ charon --query-param-auth ''
+
+Query param auth is just a handy way to be able to send moderately authenticated
+links to your friends.  This is on by default and generates a password with the
+key of C<auth>, so links will be C<http://foo:3001/bar.tar.gz?auth=bd75z4j>.  If
+you want to choose the key and value pass C<$key=$value>, so if you pass
+C<password=42> you could use the link C<http://foo:3001/bar.tar.gz?password=42>.
+
+Note that while this is on by default I may decide to change that in the future.
+
+=head2 --index --no-index
+
+ charon --no-index
+
+This option is on by default, and allows the client to get an html based
+directory listing.  You might turn this off if you want to have a bit more
+security-through-obscurity to allow only sharing files you give people links to.
+
+=head2 --help -h
+
+ charon -h
+
+Use C<--help> to get a brief listing of the options.
