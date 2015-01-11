@@ -10,6 +10,7 @@ use IO::All;
 use Future;
 use IO::Socket::IP;
 use IO::Async::SSL;
+use IO::Async::SSLStream;
 use Capture::Tiny 'capture';
 
 use App::Charon::Web;
@@ -46,6 +47,7 @@ my $app = App::Charon::Web->new(
    show_index => $opt->index,
 );
 my $handler = Net::Async::HTTP::Server::PSGI->new(
+   extensions => ['SSL'],
    app => $app->to_psgi_app,
 );
 $loop->add($handler);
