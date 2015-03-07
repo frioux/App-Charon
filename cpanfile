@@ -8,6 +8,7 @@ requires 'IO::All';
 requires 'Time::Duration::Parse';
 requires 'App::Genpass';
 requires 'IO::Socket::IP';
+requires 'HTML::Zoom';
 
 on test => sub {
    requires 'Test::More' => 1;
