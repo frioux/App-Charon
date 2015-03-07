@@ -45,12 +45,23 @@ sub BUILDARGS {
    \%params
 }
 
+has _root_server => (
+   is => 'ro',
+   lazy => 1,
+   builder => sub {
+      my $self = shift;
+
+      if ($self->_show_index) {
+         return Plack::App::Directory->new( root => $self->_root )
+      } else {
+         return Plack::App::File->new( root => $self->_root )
+      }
+   },
+);
+
 sub dispatch_request {
    my $self = shift;
 
-   my $server = $self->_show_index
-      ? 'Plack::App::Directory'
-      : 'Plack::App::File';
    my @qpa = @{$self->_query_param_auth};
    (@qpa ? ( "?$qpa[0]~" => sub {
       my ($self, $value) = @_;
@@ -60,7 +71,7 @@ sub dispatch_request {
       return;
    }) : ()),
    '/quit' => sub { shift->_quit->done(1); [200, [], ''] },
-   '/_/...' => sub { $server->new( root => shift->_root ) },
+   '/_/...' => sub { $self->_root_server },
 }
 
 1;
