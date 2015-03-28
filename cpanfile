@@ -9,6 +9,12 @@ requires 'Time::Duration::Parse';
 requires 'App::Genpass';
 requires 'IO::Socket::IP';
 requires 'HTML::Zoom';
+requires 'Moo' => 2;
+requires 'JSONY';
+requires 'IO::All';
+requires 'Try::Tiny';
+requires 'Module::Runtime';
+requires 'namespace::clean';
 
 on test => sub {
    requires 'Test::More' => 1;

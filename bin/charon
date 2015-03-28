@@ -15,15 +15,25 @@ use Future;
 use IO::Socket::IP;
 
 use App::Charon::Web;
+use App::Charon::ConfigLoader;
+my $c = App::Charon::ConfigLoader->new(
+   env_key => 'CHARON',
+   config_class => 'App::Charon::Config',
+   location => '.charonrc',
+)->load;
 
 my ($opt, $usage) = describe_options(
   'charon %o [file|dir]',
-  [ 'listen|l=s',   "Listens on an address, whether HOST:PORT or :PORT"],
-  [ 'autoshutdown=s', 'Shutdown after a given time period (example: 1h30m)'],
-  [ 'query-param-auth=s', 'Use query param auth.  Eg: pass=station will require ?pass=station in requests'],
-  [ 'index!', 'Show index (default on)', { default => 1 }],
+  [ 'listen|l=s',   "Listens on an address, whether HOST:PORT or :PORT",
+     $c->opt_default_for('listen')],
+  [ 'autoshutdown=s', 'Shutdown after a given time period (example: 1h30m)',
+     $c->opt_default_for('autoshutdown')],
+  [ 'query-param-auth=s', 'Use query param auth.  Eg: pass=station will require ?pass=station in requests',
+     $c->opt_default_for('query_param_auth')],
+  [ 'index!', 'Show index', $c->opt_default_for('index', { default => 1 })],
   [],
   [ 'help|h',       "print usage message and exit" ],
+  { show_defaults => 1 },
 );
 
 print($usage->text), exit if $opt->help;
@@ -128,6 +138,39 @@ have trouble ensuring all the various permissions are correct and all the
 various machines have the right tools and whatnot to serve files from one
 machine to another.  C<charon> helps with this by making some of what used to be
 Plack oneliners into a much more robust and convenient tool.
+
+=head1 CONFIGURATION
+
+C<charon> uses
+L<a configuration system I developed|https://blog.afoolishmanifesto.com/posts/configuration-station/>
+that allows the user to use either a file, or environment variables, or both.
+Currently all the configuration allows you to do is set defaults for the
+commandline options.  Basically it works like this:
+
+=over 3
+
+=item * if C<CHARON_$FOO> is set, use that to set C<foo>
+
+=item * if C<$foo> exists in the config file, use that to set C<foo>
+
+=back
+
+The location of the config file is similarly dynamic.  The default is just
+F<.charonrc> in the current directory.  The location can be overridden by
+setting C<CHARON_CONFLOC>.  Currently the configuration file is L<JSONY>.
+
+So to be clear, if you wanted to set a default for C<--query-param-auth>, you
+can either:
+
+=over 3
+
+=item 1. Set C<CHARON_QUERY_PARAM_AUTH=password=station>
+
+=item 2. Put a line like C< query_param_auth: password=station > in F<.charonrc>
+
+=item 3. Set C<CHARON_CONFLOC> to F<~/.charonrc> and add a line like the above to that file.
+
+=back
 
 =head1 COMMANDLINE OPTIONS
 
