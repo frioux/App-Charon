@@ -1,3 +1,5 @@
+requires perl => 5.010000;
+
 requires 'IO::Async';
 requires 'Net::Async::HTTP::Server::PSGI';
 requires 'Web::Simple';
